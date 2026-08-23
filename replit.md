@@ -1,6 +1,6 @@
-# [Project name]
+# Bot de Inscrições para Campeonato
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Bot de Discord que controla inscrições em campeonatos por botão, com limite de vagas e lista persistente de participantes.
 
 ## Run & Operate
 
@@ -30,7 +30,9 @@ _Populate as you build — non-obvious choices a reader couldn't infer from the 
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- `/criar-campeonato nome vagas` cria ou reinicia o campeonato e publica o botão de inscrição.
+- `/campeonato` mostra participantes, total de inscritos e vagas restantes.
+- O botão impede duplicidade, bloqueia inscrições quando as vagas acabam e persiste os dados em `data/championship.json`.
 
 ## User preferences
 
