@@ -31,6 +31,7 @@ type Championship = {
 const dataDir = path.resolve(process.cwd(), "data");
 const dataFile = path.join(dataDir, "championship.json");
 const buttonId = "championship:register";
+const cancelButtonId = "championship:cancel";
 const defaultSlots = Number(process.env.CHAMPIONSHIP_SLOTS ?? 16);
 
 async function loadChampionship(): Promise<Championship | null> {
@@ -47,17 +48,24 @@ async function saveChampionship(championship: Championship): Promise<void> {
   await writeFile(dataFile, JSON.stringify(championship, null, 2), "utf8");
 }
 
-function registrationButton(disabled = false): ActionRowBuilder<ButtonBuilder> {
+function registrationButtons(disabled = false): ActionRowBuilder<ButtonBuilder> {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(buttonId)
       .setLabel(disabled ? "Vagas esgotadas" : "Inscrever-se")
       .setStyle(ButtonStyle.Success)
       .setDisabled(disabled),
+    new ButtonBuilder()
+      .setCustomId(cancelButtonId)
+      .setLabel("Cancelar inscrição")
+      .setStyle(ButtonStyle.Danger),
   );
 }
 
-function championshipText(championship: Championship): string {
+function championshipText(
+  championship: Championship,
+  showParticipants = false,
+): string {
   const remaining = Math.max(championship.slots - championship.participants.length, 0);
   const names = championship.participants.length
     ? championship.participants
@@ -65,15 +73,18 @@ function championshipText(championship: Championship): string {
         .join("\n")
     : "Nenhum participante ainda.";
 
-  return [
+  const summary = [
     `# ${championship.name}`,
     "",
     `**Participantes:** ${championship.participants.length}/${championship.slots}`,
     `**Vagas restantes:** ${remaining}`,
-    "",
-    "**Lista de participantes**",
-    names,
-  ].join("\n");
+  ];
+
+  if (showParticipants) {
+    summary.push("", "**Lista de participantes**", names);
+  }
+
+  return summary.join("\n");
 }
 
 async function handleCreateCommand(
@@ -91,7 +102,7 @@ async function handleCreateCommand(
   await saveChampionship(championship);
   await interaction.reply({
     content: championshipText(championship),
-    components: [registrationButton()],
+    components: [registrationButtons()],
   });
 }
 
@@ -109,7 +120,26 @@ async function handleStatusCommand(
 
   await interaction.reply({
     content: championshipText(championship),
-    components: [registrationButton(championship.participants.length >= championship.slots)],
+    components: [
+      registrationButtons(championship.participants.length >= championship.slots),
+    ],
+  });
+}
+
+async function handleParticipantsCommand(
+  interaction: ChatInputCommandInteraction,
+): Promise<void> {
+  const championship = await loadChampionship();
+  if (!championship) {
+    await interaction.reply({
+      content: "Ainda não existe um campeonato. Use `/criar-campeonato` primeiro.",
+      ephemeral: true,
+    });
+    return;
+  }
+
+  await interaction.reply({
+    content: championshipText(championship, true),
   });
 }
 
@@ -149,7 +179,40 @@ async function handleRegistration(interaction: ButtonInteraction): Promise<void>
   await saveChampionship(championship);
   await interaction.update({
     content: championshipText(championship),
-    components: [registrationButton(championship.participants.length >= championship.slots)],
+    components: [
+      registrationButtons(championship.participants.length >= championship.slots),
+    ],
+  });
+}
+
+async function handleCancellation(interaction: ButtonInteraction): Promise<void> {
+  const championship = await loadChampionship();
+  if (!championship) {
+    await interaction.reply({
+      content: "Ainda não existe um campeonato aberto.",
+      ephemeral: true,
+    });
+    return;
+  }
+
+  const participantIndex = championship.participants.findIndex(
+    (participant) => participant.id === interaction.user.id,
+  );
+  if (participantIndex === -1) {
+    await interaction.reply({
+      content: "Você não está inscrito neste campeonato.",
+      ephemeral: true,
+    });
+    return;
+  }
+
+  championship.participants.splice(participantIndex, 1);
+  await saveChampionship(championship);
+  await interaction.update({
+    content: championshipText(championship),
+    components: [
+      registrationButtons(championship.participants.length >= championship.slots),
+    ],
   });
 }
 
@@ -174,7 +237,10 @@ function commands() {
       ),
     new SlashCommandBuilder()
       .setName("campeonato")
-      .setDescription("Mostra o campeonato e a lista atual de participantes"),
+      .setDescription("Mostra o campeonato e as vagas, sem exibir nomes"),
+    new SlashCommandBuilder()
+      .setName("ver-participantes")
+      .setDescription("Mostra a lista atual de participantes"),
   ].map((command) => command.toJSON());
 }
 
@@ -196,10 +262,17 @@ export async function startDiscordBot(): Promise<void> {
     try {
       if (interaction.isButton() && interaction.customId === buttonId) {
         await handleRegistration(interaction);
+      } else if (interaction.isButton() && interaction.customId === cancelButtonId) {
+        await handleCancellation(interaction);
       } else if (interaction.isChatInputCommand() && interaction.commandName === "criar-campeonato") {
         await handleCreateCommand(interaction);
       } else if (interaction.isChatInputCommand() && interaction.commandName === "campeonato") {
         await handleStatusCommand(interaction);
+      } else if (
+        interaction.isChatInputCommand() &&
+        interaction.commandName === "ver-participantes"
+      ) {
+        await handleParticipantsCommand(interaction);
       }
     } catch (error) {
       logger.error({ err: error }, "Erro ao processar interação do Discord");

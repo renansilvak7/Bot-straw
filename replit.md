@@ -31,7 +31,9 @@ _Populate as you build — non-obvious choices a reader couldn't infer from the 
 ## Product
 
 - `/criar-campeonato nome vagas` cria ou reinicia o campeonato e publica o botão de inscrição.
-- `/campeonato` mostra participantes, total de inscritos e vagas restantes.
+- `/campeonato` mostra o total de inscritos e vagas restantes, sem revelar nomes.
+- O botão permite inscrever e cancelar inscrição; cancelamentos liberam vagas imediatamente.
+- `/ver-participantes` revela a lista atual somente quando alguém solicitar.
 - O botão impede duplicidade, bloqueia inscrições quando as vagas acabam e persiste os dados em `data/championship.json`.
 
 ## User preferences
