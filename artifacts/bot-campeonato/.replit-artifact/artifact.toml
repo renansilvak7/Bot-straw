@@ -1,0 +1,37 @@
+kind = "web"
+previewPath = "/"
+title = "Bot de Campeonato"
+description = "Aplicativo do bot de Discord para controlar inscrições, vagas, cancelamentos e participantes de campeonatos."
+version = "1.0.0"
+id = "artifacts/bot-campeonato"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23503
+
+[services.development]
+run = "pnpm --filter @workspace/bot-campeonato run dev"
+
+[services.production]
+
+[services.production.build]
+args = [ "pnpm", "--filter", "@workspace/api-server", "run", "build" ]
+
+[services.production.build.env]
+NODE_ENV = "production"
+
+[services.production.run]
+args = [ "node", "--enable-source-maps", "artifacts/api-server/dist/index.mjs" ]
+
+[services.production.run.env]
+PORT = "23503"
+NODE_ENV = "production"
+
+[services.production.health.startup]
+path = "/api/healthz"
+
+[services.env]
+PORT = "23503"
+BASE_PATH = "/"
