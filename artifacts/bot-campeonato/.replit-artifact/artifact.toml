@@ -28,6 +28,7 @@ args = [ "node", "--enable-source-maps", "artifacts/api-server/dist/index.mjs" ]
 [services.production.run.env]
 PORT = "23503"
 NODE_ENV = "production"
+KEEP_ALIVE_INTERVAL_MS = "30000"
 
 [services.production.health.startup]
 path = "/api/healthz"
