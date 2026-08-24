@@ -1,6 +1,42 @@
 {
-  "name": "straw camp",
+  "name": "➜ Competição valendo Brawl Pass 🥳🏆",
   "slots": 16,
-  "participants": [],
-  "createdAt": "2026-08-23T20:33:19.001Z"
+  "participants": [
+    {
+      "id": "1514429612791435304",
+      "name": "Renan_silva__k7",
+      "joinedAt": "2026-08-23T22:16:53.549Z"
+    },
+    {
+      "id": "1340292133827121173",
+      "name": "Isabetinha_",
+      "joinedAt": "2026-08-23T22:17:54.174Z"
+    },
+    {
+      "id": "1203489367444815902",
+      "name": "Lua perdida.",
+      "joinedAt": "2026-08-23T22:27:30.158Z"
+    },
+    {
+      "id": "961990369757761546",
+      "name": "Gatengo",
+      "joinedAt": "2026-08-23T22:29:57.622Z"
+    },
+    {
+      "id": "1532895327038734577",
+      "name": "YT: Gab O Nell",
+      "joinedAt": "2026-08-23T23:27:49.662Z"
+    },
+    {
+      "id": "1234972726402224219",
+      "name": "Froste",
+      "joinedAt": "2026-08-23T23:30:36.393Z"
+    },
+    {
+      "id": "1235782405676339231",
+      "name": "JaponesBK",
+      "joinedAt": "2026-08-23T23:32:40.161Z"
+    }
+  ],
+  "createdAt": "2026-08-23T22:16:48.628Z"
 }
