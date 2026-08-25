@@ -281,12 +281,17 @@ export async function startDiscordBot(): Promise<void> {
       }
     }
   });
-    client.on("error", (error) => {
+      let reconnectTimeout: NodeJS.Timeout | undefined;
+
+  client.on("error", (error) => {
     logger.error({ err: error }, "Erro no cliente do Discord");
   });
 
   client.on("shardReconnecting", (shardId) => {
-    logger.warn({ shardId }, "Discord desconectou; tentando reconectar...");
+    logger.warn(
+      { shardId },
+      "Discord desconectou; tentando reconectar...",
+    );
   });
 
   client.on("shardResume", (shardId, replayedEvents) => {
@@ -294,6 +299,11 @@ export async function startDiscordBot(): Promise<void> {
       { shardId, replayedEvents },
       "Bot do Discord reconectado e sessão retomada",
     );
+
+    if (reconnectTimeout) {
+      clearTimeout(reconnectTimeout);
+      reconnectTimeout = undefined;
+    }
   });
 
   client.on("shardDisconnect", (event, shardId) => {
@@ -301,6 +311,25 @@ export async function startDiscordBot(): Promise<void> {
       { shardId, code: event.code, reason: event.reason },
       "Conexão com o Discord encerrada",
     );
+
+    if (reconnectTimeout) {
+      clearTimeout(reconnectTimeout);
+    }
+
+    reconnectTimeout = setTimeout(() => {
+      if (client.ws.status !== 0) {
+        logger.warn(
+          "Bot ainda desconectado após 1 minuto; tentando recuperar a conexão...",
+        );
+
+        void client.login(token).catch((error) => {
+          logger.error(
+            { err: error },
+            "Tentativa de reconexão após 1 minuto falhou",
+          );
+        });
+      }
+    }, 60_000);
   });
 
   await client.login(token);
