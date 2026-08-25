@@ -281,6 +281,27 @@ export async function startDiscordBot(): Promise<void> {
       }
     }
   });
-  client.on("error", (error) => logger.error({ err: error }, "Erro no cliente do Discord"));
+    client.on("error", (error) => {
+    logger.error({ err: error }, "Erro no cliente do Discord");
+  });
+
+  client.on("shardReconnecting", (shardId) => {
+    logger.warn({ shardId }, "Discord desconectou; tentando reconectar...");
+  });
+
+  client.on("shardResume", (shardId, replayedEvents) => {
+    logger.info(
+      { shardId, replayedEvents },
+      "Bot do Discord reconectado e sessão retomada",
+    );
+  });
+
+  client.on("shardDisconnect", (event, shardId) => {
+    logger.warn(
+      { shardId, code: event.code, reason: event.reason },
+      "Conexão com o Discord encerrada",
+    );
+  });
+
   await client.login(token);
 }
